@@ -2,8 +2,8 @@ import 'dotenv/config';
 import { z } from 'zod';
 import { fetch } from 'undici';
 import { XMLParser } from 'fast-xml-parser';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 
 import type { ToolDependencies } from './tools/types.js';
 import registerHealthTool from './tools/health.js';
@@ -14,21 +14,21 @@ import registerRheinpegelTool from './tools/rheinpegel.js';
 import registerKvbRadTool from './tools/kvb_rad.js';
 import registerOparlTools from './tools/oparl_bodies.js';
 
-// Beschreibender Hinweis für Clients – validiert über Zod, damit die Abhängigkeit genutzt wird.
+// Descriptive instructions for clients - validated with Zod.
 const instructions = z
   .string()
   .parse(
     [
-      'Kölner Open-Data MCP-Server',
+      'Cologne Open Data MCP Server',
       '',
-      'Verfügbare Werkzeuge:',
-      '- health: einfacher Statuscheck.',
-      '- http.get_json: HTTP GET für beliebige JSON/REST-Endpunkte.',
-      '- koeln.parking: Parkhausauslastung.',
-      '- koeln.baustellen_caps: Baustellen-WFS GetCapabilities.',
-      '- koeln.rheinpegel: Rheinpegelinformationen.',
-      '- koeln.kvb_rad.stations: KVB-Rad-Stationen.',
-      '- koeln.oparl.bodies/oparl.body: Politische Gremien gem. OParl.'
+      'Available tools:',
+      '- health: Simple status check',
+      '- http.get_json: HTTP GET for arbitrary JSON/REST endpoints',
+      '- koeln.parking: Parking facility occupancy',
+      '- koeln.baustellen_caps: Construction sites WFS GetCapabilities',
+      '- koeln.rheinpegel: Rhine water level information',
+      '- koeln.kvb_rad.stations: KVB bike sharing stations',
+      '- koeln.oparl.bodies/body: Political bodies according to OParl specification'
     ].join('\n')
   );
 
@@ -40,7 +40,7 @@ const mcpServer = new McpServer(
   { instructions }
 );
 
-// Gemeinsame Hilfsobjekte für die Werkzeuge (HTTP-Client, XML-Parser).
+// Shared utility objects for tools (HTTP client, XML parser).
 const toolDependencies: ToolDependencies = {
   fetch,
   xmlParser: new XMLParser({
@@ -51,7 +51,7 @@ const toolDependencies: ToolDependencies = {
   })
 };
 
-// Registrierung aller Werkzeuge in separaten Modulen.
+// Register all tools from separate modules.
 registerHealthTool(mcpServer, toolDependencies);
 registerHttpGetTool(mcpServer, toolDependencies);
 registerParkingTool(mcpServer, toolDependencies);
@@ -62,12 +62,12 @@ registerOparlTools(mcpServer, toolDependencies);
 
 async function main() {
   const transport = new StdioServerTransport();
-  // Start des Servers über STDIO – geeignet für den MCP-Einsatz in Tools.
+  // Start server via STDIO - suitable for MCP use in tools.
   await mcpServer.connect(transport);
-  console.log('✅ MCP-Server läuft: Cologne-Open-Data-Mcp ready on stdio.');
+  console.error('✅ MCP Server running: Cologne-Open-Data-MCP ready on stdio.');
 }
 
 main().catch((error) => {
-  console.error('❌ Fehler beim Start des MCP-Servers:', error);
+  console.error('❌ Error starting MCP server:', error);
   process.exit(1);
 });

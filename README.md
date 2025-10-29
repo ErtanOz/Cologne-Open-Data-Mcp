@@ -1,76 +1,122 @@
-# Cologne Open Data MCP
+# Cologne Open Data MCP Server
 
-Ein MCP-Server für Node.js + TypeScript, der offene Datenschnittstellen der Stadt Köln über das Model Context Protocol bereitstellt. Er eignet sich als Datenquelle für KI-gestützte Tools und Assistenten.
+A Model Context Protocol (MCP) server providing seamless access to Cologne's Open Data APIs. Built with Node.js, TypeScript, and the [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk), this server enables AI assistants and tools to interact with real-time data from the city of Cologne, Germany.
 
-## Projektüberblick
+[![npm version](https://img.shields.io/npm/v/cologne-open-data-mcp.svg)](https://www.npmjs.com/package/cologne-open-data-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
 
-- **Technologie-Stack:** Node.js (ESM), TypeScript, [@modelcontextprotocol/sdk](https://github.com/modelcontextprotocol/typescript-sdk)
-- **Transport:** STDIO (Standard für MCP-Server)
-- **Hauptaufgabe:** Zugriff auf Köln-spezifische Open-Data-APIs und Ausgabe strukturierter Ergebnisse in MCP-kompatiblen Antworten
+## 🌟 Features
 
-## Verzeichnisstruktur
+- **Real-time Data Access**: Live parking availability, bike-sharing stations, Rhine water levels, and more
+- **Type-Safe**: Fully typed with TypeScript and Zod schema validation
+- **Secure**: Built-in SSRF protection, request timeouts, and header injection prevention
+- **MCP Compatible**: Works with Claude Desktop, Cursor, and other MCP-compatible clients
+- **Well-Documented**: Comprehensive API documentation and usage examples
+- **Production-Ready**: Error handling, logging, and timeout management
 
-```text
-Cologne-Open-Data-Mcp/
-├─ src/
-│  ├─ server.ts                # Einstiegspunkt – initialisiert MCP-Server und registriert Tool-Handler
-│  └─ tools/                   # Alle Tooldefinitionen (zod-validierte Eingabe, Callbacks)
-│     ├─ health.ts             # Basischer Health-Check
-│     ├─ http_get.ts           # Generischer HTTP-GET-Wrapper
-│     ├─ parking.ts            # Parkhausdaten Köln
-│     ├─ baustellen.ts         # Baustellen-WFS GetCapabilities
-│     ├─ rheinpegel.ts         # Rheinpegel (JSON/XML)
-│     ├─ kvb_rad.ts            # KVB-Rad-Stationen aus der Nextbike-API
-│     ├─ oparl_bodies.ts       # OParl-Bodies & einzelne Body-Details
-│     ├─ types.ts              # Gemeinsame Dependency-Typen
-│     └─ utils.ts              # Kleine Helfer (JSON-Formatierung etc.)
-├─ package.json                # Skripte, Abhängigkeiten
-├─ tsconfig.json               # TypeScript-Konfiguration
-├─ .env.example                # Beispiellinks für alle Open-Data-APIs
-└─ README.md                   # Dieses Dokument
+## 📋 Available Tools
+
+| Tool Name | Description | Data Source |
+|-----------|-------------|-------------|
+| `health` | Server status check | - |
+| `http.get_json` | Generic HTTP GET for JSON/REST endpoints | Any URL |
+| `koeln.parking` | Current parking facility availability | [Cologne Parking API](https://www.stadt-koeln.de/externe-dienste/open-data/parking.php) |
+| `koeln.baustellen_caps` | Construction sites WFS capabilities | [Cologne GeoPortal](https://geoportal.stadt-koeln.de/) |
+| `koeln.rheinpegel` | Rhine river water level | [Cologne Water Level Service](https://www.stadt-koeln.de/interne-dienste/hochwasser/pegel_ws.php) |
+| `koeln.kvb_rad.stations` | KVB bike-sharing stations | [Nextbike API](https://api.nextbike.net/) |
+| `koeln.oparl.bodies` | Political bodies list | [OParl Cologne](https://buergerinfo.stadt-koeln.de/oparl/) |
+| `koeln.oparl.body` | Single political body details | [OParl Cologne](https://buergerinfo.stadt-koeln.de/oparl/) |
+
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+npm install cologne-open-data-mcp
 ```
 
-## Tools & APIs
+Or install globally:
 
-| MCP-Tool-Name                | Beschreibung                                              | Standardquelle (.env)                                                                                          |
-|-----------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------|
-| `health`                    | Echo/Status-Check                                         | –                                                                                                               |
-| `http.get_json`             | HTTP-GET mit optionalen Headern, bevorzugt JSON           | Beliebige Ziel-URL                                                                                              |
-| `koeln.parking`             | Parkhaus-Auslastung                                      | `PARKING_URL=https://www.stadt-koeln.de/externe-dienste/open-data/parking.php`                                 |
-| `koeln.baustellen_caps`     | WFS GetCapabilities Baustellen                           | `BAUSTELLEN_WFS=https://geoportal.stadt-koeln.de/...GetCapabilities`                                            |
-| `koeln.rheinpegel`          | Rheinpegel-Feed (JSON/XML)                               | `RHEINPEGEL_URL=https://www.stadt-koeln.de/interne-dienste/hochwasser/pegel_ws.php`                            |
-| `koeln.kvb_rad.stations`    | KVB-Rad-Stationen (Nextbike)                             | `NEXTBIKE_URL=https://api.nextbike.net/maps/nextbike-live.xml?city=14`                                         |
-| `koeln.oparl.bodies`        | Liste politischer Bodies                                 | `OPARL_BODIES_URL=https://buergerinfo.stadt-koeln.de/oparl/bodies`                                             |
-| `koeln.oparl.body`          | Einzelnes OParl-Body-Objekt nach ID oder URL             | Basis-URL wie oben, ID wird dynamisch ergänzt                                                                  |
+```bash
+npm install -g cologne-open-data-mcp
+```
 
-> **Hinweis:** Alle Tools nutzen `fetch` aus `undici` und geben strukturierte MCP-Inhalte (Text) zurück. Bei JSON/XML-Antworten werden Ergebnisse vorformatiert.
+### Usage with Claude Desktop
 
-## Quickstart
+1. Edit your Claude Desktop configuration file:
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-1. **Repository klonen**
-   ```bash
-   git clone https://github.com/ErtanOz/Cologne-Open-Data-Mcp.git
-   cd Cologne-Open-Data-Mcp
-   ```
+2. Add the server configuration:
 
-2. **Abhängigkeiten installieren**
-   ```bash
-   npm install
-   ```
+```json
+{
+  "mcpServers": {
+    "cologne-open-data": {
+      "command": "npx",
+      "args": ["cologne-open-data-mcp"]
+    }
+  }
+}
+```
 
-3. **Optionale Umgebungsvariablen setzen**  
-   Kopiere `.env.example` → `.env` und passe URLs an, falls andere Feeds gewünscht sind.
+3. Restart Claude Desktop
 
-4. **Entwicklung starten**
-   ```bash
-   npm run dev
-   ```
-   Es erscheint `✅ MCP-Server läuft: Cologne-Open-Data-Mcp ready on stdio.` – der Server lauscht jetzt auf STDIO.
+### Usage with Other MCP Clients
 
-5. **In MCP-Client integrieren**  
-   Binde den Server in deinen bevorzugten MCP-Client (z. B. Claude Desktop, Cursor, VS Code MCP) ein und rufe Tools wie `koeln.parking` oder `koeln.kvb_rad.stations` auf.
+The server communicates via STDIO and can be integrated with any MCP-compatible client:
 
-## Konfiguration (.env)
+```typescript
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { spawn } from 'child_process';
+
+const transport = new StdioClientTransport({
+  command: 'npx',
+  args: ['cologne-open-data-mcp']
+});
+```
+
+## 🛠️ Development
+
+### Prerequisites
+
+- Node.js >= 18.0.0
+- npm or yarn
+
+### Setup
+
+1. Clone the repository:
+```bash
+git clone https://github.com/ErtanOz/Cologne-Open-Data-Mcp.git
+cd Cologne-Open-Data-Mcp
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. (Optional) Configure custom API endpoints:
+```bash
+cp .env.example .env
+# Edit .env with your preferred endpoints
+```
+
+4. Run in development mode:
+```bash
+npm run dev
+```
+
+5. Build for production:
+```bash
+npm run build
+npm start
+```
+
+## 🔧 Configuration
+
+Environment variables can be set in a `.env` file:
 
 ```ini
 PARKING_URL=https://www.stadt-koeln.de/externe-dienste/open-data/parking.php
@@ -80,14 +126,172 @@ NEXTBIKE_URL=https://api.nextbike.net/maps/nextbike-live.xml?city=14
 OPARL_BODIES_URL=https://buergerinfo.stadt-koeln.de/oparl/bodies
 ```
 
-Alle Werte können bei Bedarf auf alternative Staging-/Testendpunkte zeigen.
+## 📖 API Examples
 
-## Entwicklung & Tests
+### Check Server Health
 
-- `npm run dev` – tsx-gestützter Entwicklungsmodus (Hot-Reload bei Änderungen).
-- `npm run build` – kompiliert TypeScript nach `dist/`.
-- Tool-Handler befinden sich in `src/tools/`; gemeinsame Hilfen in `src/tools/utils.ts`.
+```typescript
+// Input
+{
+  "tool": "health",
+  "arguments": {
+    "echo": "Hello MCP Server"
+  }
+}
 
-## Lizenz
+// Output
+"Hello MCP Server"
+```
 
-MIT (siehe Projekt in GitHub). Open-Data-Quellen unterliegen den jeweiligen Nutzungsbedingungen der Stadt Köln bzw. der Drittanbieter.
+### Get Parking Data
+
+```typescript
+// Input
+{
+  "tool": "koeln.parking",
+  "arguments": {}
+}
+
+// Output (example)
+{
+  "source": "https://www.stadt-koeln.de/externe-dienste/open-data/parking.php",
+  "payload": [
+    {
+      "name": "Parkhaus Am Dom",
+      "free": 245,
+      "total": 550,
+      "status": "open"
+    }
+    // ... more parking facilities
+  ]
+}
+```
+
+### Get KVB Bike Stations
+
+```typescript
+// Input
+{
+  "tool": "koeln.kvb_rad.stations",
+  "arguments": {
+    "limit": 10,
+    "onlyActive": true
+  }
+}
+
+// Output (example)
+{
+  "source": "https://api.nextbike.net/maps/nextbike-live.xml?city=14",
+  "totalStations": 287,
+  "returnedStations": 10,
+  "stations": [
+    {
+      "id": "123456",
+      "name": "Hauptbahnhof",
+      "bikes": 8,
+      "freeRacks": 12,
+      "active": true,
+      "lat": 50.9429,
+      "lng": 6.9589
+    }
+    // ... more stations
+  ]
+}
+```
+
+### Generic HTTP GET
+
+```typescript
+// Input
+{
+  "tool": "http.get_json",
+  "arguments": {
+    "url": "https://api.example.com/data",
+    "headers": {
+      "Accept": "application/json"
+    }
+  }
+}
+```
+
+## 🔒 Security Features
+
+- **SSRF Protection**: Validates URLs to prevent requests to localhost and private IP ranges
+- **Request Timeouts**: 10-second timeout for all HTTP requests
+- **Header Injection Prevention**: Sanitizes custom headers
+- **Type Validation**: Zod schema validation for all inputs
+- **Error Handling**: Comprehensive error messages without exposing sensitive information
+
+## 🐳 Docker Deployment
+
+A `Dockerfile` is included for containerized deployment:
+
+```bash
+# Build the image
+docker build -t cologne-open-data-mcp .
+
+# Run the container
+docker run -i cologne-open-data-mcp
+```
+
+## 📂 Project Structure
+
+```
+Cologne-Open-Data-Mcp/
+├── src/
+│   ├── server.ts              # MCP server initialization
+│   └── tools/                 # Tool implementations
+│       ├── health.ts          # Health check
+│       ├── http_get.ts        # Generic HTTP GET
+│       ├── parking.ts         # Parking data
+│       ├── baustellen.ts      # Construction sites
+│       ├── rheinpegel.ts      # Rhine water level
+│       ├── kvb_rad.ts         # Bike-sharing stations
+│       ├── oparl_bodies.ts    # Political bodies
+│       ├── types.ts           # Type definitions
+│       └── utils.ts           # Utility functions
+├── dist/                      # Compiled JavaScript (generated)
+├── package.json
+├── tsconfig.json
+├── LICENSE
+└── README.md
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [City of Cologne](https://www.stadt-koeln.de/) for providing Open Data APIs
+- [Model Context Protocol](https://github.com/modelcontextprotocol) team for the MCP SDK
+- [Nextbike](https://www.nextbike.net/) for bike-sharing data
+- All contributors to this project
+
+## 📞 Support
+
+- **Issues**: [GitHub Issues](https://github.com/ErtanOz/Cologne-Open-Data-Mcp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ErtanOz/Cologne-Open-Data-Mcp/discussions)
+
+## 🗺️ Roadmap
+
+- [ ] Add more Cologne Open Data sources
+- [ ] Implement caching for improved performance
+- [ ] Add rate limiting capabilities
+- [ ] Create comprehensive test suite
+- [ ] Add monitoring and metrics
+- [ ] Support for additional data formats
+
+---
+
+**Made with ❤️ for the Cologne community**

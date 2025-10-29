@@ -4,22 +4,22 @@ import type { ToolDependencies } from './types.js';
 import { buildTextResult } from './utils.js';
 
 /**
- * Registriert einen einfachen Health-Check-Toolendpunkt.
+ * Registers a simple health check tool endpoint.
  */
 export default function registerHealthTool(server: McpServer, _deps: ToolDependencies): void {
   server.registerTool(
     'health',
     {
-      description: 'Prüft den Zustand des Servers und spiegelt optional eine Nachricht zurück.',
+      description: 'Checks server status and optionally echoes a message back.',
       inputSchema: {
         echo: z
           .string()
           .optional()
-          .describe('Optionaler Text, der im Ergebnis wieder ausgegeben wird.')
+          .describe('Optional text to echo back in the result.')
       }
     },
     async ({ echo }) => {
-      const message = echo ?? 'OK – Server antwortet.';
+      const message = echo ?? 'OK - Server is responding.';
       return buildTextResult(message);
     }
   );
