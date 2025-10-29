@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: cologne-open-data-mcp
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:sse
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: PARKING_URL
+        value: https://www.stadt-koeln.de/externe-dienste/open-data/parking.php
+      - key: BAUSTELLEN_WFS
+        value: https://geoportal.stadt-koeln.de/wss/service/baustellen_wfs/guest?SERVICE=WFS&REQUEST=GetCapabilities
+      - key: RHEINPEGEL_URL
+        value: https://www.stadt-koeln.de/interne-dienste/hochwasser/pegel_ws.php
+      - key: NEXTBIKE_URL
+        value: https://api.nextbike.net/maps/nextbike-live.xml?city=14
+      - key: OPARL_BODIES_URL
+        value: https://buergerinfo.stadt-koeln.de/oparl/bodies
+    healthCheckPath: /health

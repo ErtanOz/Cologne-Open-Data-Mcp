@@ -15,6 +15,15 @@ A Model Context Protocol (MCP) server providing seamless access to Cologne's Ope
 - **Well-Documented**: Comprehensive API documentation and usage examples
 - **Production-Ready**: Error handling, logging, and timeout management
 
+## 🌐 Deployment Options
+
+This MCP server supports two modes:
+
+1. **Local STDIO Mode** - For Claude Desktop and local MCP clients
+2. **Web SSE Mode** - For web deployment on platforms like Render
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions.
+
 ## 📋 Available Tools
 
 | Tool Name | Description | Data Source |
@@ -42,7 +51,7 @@ Or install globally:
 npm install -g cologne-open-data-mcp
 ```
 
-### Usage with Claude Desktop
+### Local Usage with Claude Desktop (STDIO)
 
 1. Edit your Claude Desktop configuration file:
    - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
@@ -63,7 +72,31 @@ npm install -g cologne-open-data-mcp
 
 3. Restart Claude Desktop
 
-### Usage with Other MCP Clients
+### Web Deployment (SSE Mode)
+
+For production deployment on Render or similar platforms:
+
+1. **Deploy to Render:**
+   - Follow the [DEPLOYMENT.md](DEPLOYMENT.md) guide
+   - Use the `render.yaml` configuration included
+   - Server will be available at `https://your-app.onrender.com`
+
+2. **Connect to SSE Endpoint:**
+   ```typescript
+   import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+   
+   const transport = new SSEClientTransport(
+     new URL('https://your-app.onrender.com/sse')
+   );
+   ```
+
+3. **Test Deployment:**
+   ```bash
+   # Health check
+   curl https://your-app.onrender.com/health
+   ```
+
+### Usage with Other MCP Clients (STDIO)
 
 The server communicates via STDIO and can be integrated with any MCP-compatible client:
 
@@ -283,8 +316,27 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Issues**: [GitHub Issues](https://github.com/ErtanOz/Cologne-Open-Data-Mcp/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/ErtanOz/Cologne-Open-Data-Mcp/discussions)
 
+## ⚠️ Important Notes
+
+### About ChatGPT Compatibility
+
+**ChatGPT does NOT support MCP.** This server is designed for:
+- ✅ Claude Desktop (Anthropic)
+- ✅ Cursor IDE
+- ✅ Other MCP-compatible clients
+
+For ChatGPT integration, you would need to create a separate REST API wrapper with OpenAPI specification.
+
+### Deployment Modes
+
+- **STDIO Mode**: Local desktop use (Claude Desktop, etc.)
+- **SSE Mode**: Web deployment (Render, cloud platforms)
+
 ## 🗺️ Roadmap
 
+- [x] STDIO transport for local use
+- [x] SSE transport for web deployment
+- [x] Render deployment configuration
 - [ ] Add more Cologne Open Data sources
 - [ ] Implement caching for improved performance
 - [ ] Add rate limiting capabilities
